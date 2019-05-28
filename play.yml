@@ -1,0 +1,69 @@
+---
+# WIP: playbook to install/use intel cluster checker: https://software.intel.com/en-us/intel-cluster-checker
+# run using:
+#   ansible-playbook -e @config/openhpc.yml -i ansible/inventory-openhpc play.yml
+# where paths are in p3 appliances
+# ** from next to this playbook **
+#
+# assumes that there is /home shared between all nodes
+
+
+# TODO: check entropy is ok and fix hw support if needed
+
+- name: ensure passwordless ssh from login->compute works
+# TODO: make this idempotent
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: add ssh identities
+      command: ssh-add 
+  # TODO: also need to make sure the agent is started and keys exist etc...
+
+- name: install intel packages
+# TODO: make key adding idempotent
+  hosts: openhpc_login openhpc_compute
+  become: yes
+  tasks:
+    - name: add intel HPC repos
+      command: yum-config-manager --add-repo https://yum.repos.intel.com/setup/intelproducts.repo
+       # done like this because yum_repository module doesn't support adding .repo files
+       # (https://stackoverflow.com/a/53982372/916373)
+    - name: add intel HPC key
+      command: rpm --import https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+    - name: install intel-mpi
+      yum:
+        name: intel-mpi
+        state: present
+    - name: install intel-mkl & hpl
+      yum:
+        name: intel-mkl
+        state: present
+
+
+# install cluster checker
+- hosts: openhpc_login openhpc_compute
+# TODO: make key adding idempotent
+  become: yes
+  tasks:
+    - name: add intel CLCK repo
+      command: yum-config-manager --add-repo https://yum.repos.intel.com/clck/2019/setup/intel-clck-2019.repo
+    - name: add intel CLCK key
+      command: rpm --import https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2019.PUB
+    - name: install CLCK
+      yum:
+        name: intel-clck
+        state: present
+
+# run clck - note we *don't* want to be root for this:
+- hosts: openhpc_login
+  tasks:
+  - name: create CLCK node file
+    copy:
+      content: "{{ '\n'.join(groups['openhpc_compute']) + '\n'}}"
+      dest: ~/clck_nodes
+  - name: run clck
+    script: "{{ playbook_dir }}/run_clck.sh"
+    # have to do this as a script as have to source various files first
+
+# TODO: install high-performance linpack
+
