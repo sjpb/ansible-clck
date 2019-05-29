@@ -52,6 +52,9 @@
     copy:
       content: "{{ '\n'.join(groups['openhpc_compute']) + '\n'}}"
       dest: ~/clck_nodes
+  - shell: source `find /opt/intel -name mpivars.sh`
+  - shell: source `find /opt/intel -name clckvars.sh`
+  - shell: source `find /opt/intel -name mlkvars.sh`
   - name: run clck
     script: "{{ playbook_dir }}/run_clck.sh"
     # have to do this as a script as have to source various files first
@@ -60,13 +63,13 @@
       src: ~/clck_results.log
       flat: yes
       dest: ~/clck_results.log
-      register: clck_results
+    register: result
   - debug:
       msg: "Retrieved results as ~/clck_results.log"
-      when: clck_results is succeeded
+    when: result is succeeded
   - debug:
       msg: "** No results retrieved **"
-      when: clck_results is failed
+    when: result is failed
 
 # TODO: install high-performance linpack
 
