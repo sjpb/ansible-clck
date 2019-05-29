@@ -5,9 +5,10 @@
 #   ansible-playbook -e @config/openhpc.yml -i ansible/inventory-openhpc play.yml
 # ** from next to this playbook **, where paths are to p3 appliances files
 #
-# assumes that there is /home shared between all nodes
-# Note this will overwrite an existing ~/clck_results.log on the launching host (if clck runs ok)
-
+# Assumes that /home is shared between all nodes.
+# Note this will overwrite an existing ~/clck_results.log on the launching host (if clck runs ok).
+# It will also generate a clck_debug.log on the slurm login node.
+#
 # TODO: check entropy is ok and fix hw support if needed
 
 - name: ensure passwordless ssh from login->compute works
@@ -31,17 +32,17 @@
       # note yum_repository module doesn't support adding .repo files (https://stackoverflow.com/a/53982372/916373)
     - name: install intel-mpi
       yum:
-        name: intel-mpi
+        name: intel-mpi-2019.4-070
         state: present
-    - name: install intel-mkl & hpl
+    - name: install intel-mkl (includes hpl benchmark)
       yum:
-        name: intel-mkl
+        name: intel-mkl-2019.4-070
         state: present
     - name: add intel CLCK repo
       command: yum-config-manager --add-repo https://yum.repos.intel.com/clck/2019/setup/intel-clck-2019.repo
     - name: install CLCK
       yum:
-        name: intel-clck
+        name: intel-clck-2019.3.5-025
         state: present
 
 - name: run clck
@@ -67,6 +68,4 @@
   - debug:
       msg: "** No results retrieved **"
     when: result is failed
-
-# TODO: install high-performance linpack
 
