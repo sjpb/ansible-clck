@@ -52,9 +52,6 @@
     copy:
       content: "{{ '\n'.join(groups['openhpc_compute']) + '\n'}}"
       dest: ~/clck_nodes
-  - shell: source `find /opt/intel -name mpivars.sh`
-  - shell: source `find /opt/intel -name clckvars.sh`
-  - shell: source `find /opt/intel -name mlkvars.sh`
   - name: run clck
     script: "{{ playbook_dir }}/run_clck.sh"
     # have to do this as a script as have to source various files first
