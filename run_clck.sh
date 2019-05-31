@@ -1,5 +1,8 @@
 #!/usr/bin/bash
 
+# set locale to fix warning from clck/perl_functionality
+export LC_ALL=C
+
 # load intel environments:
 #source /opt/intel/compilers_and_libraries_2019.4.243/linux/bin/compilervars.sh intel64
 #source /opt/intel/compilers_and_libraries_2019.4.243/linux/mkl/bin/mklvars.sh intel64
