@@ -3,7 +3,7 @@
 #
 # run using:
 #   ansible-playbook -e @config/openhpc.yml -i ansible/inventory-openhpc play.yml
-# ** from next to this playbook **, where paths are to p3 appliances files
+# where paths except play.yml refer to p3 appliances files
 #
 # Assumes that /home is shared between all nodes.
 # Note this will overwrite an existing ~/clck_results.log on the launching host (if clck runs ok).
@@ -21,6 +21,7 @@
 
 - name: install intel packages
 # clck docs don't state this as a prerequisite but they appear to be, to not get a FAIL at least
+# note not everything is at latest version as that didn't work
   hosts: openhpc_login openhpc_compute
   become: yes
   tasks:
@@ -32,9 +33,10 @@
       # note yum_repository module doesn't support adding .repo files (https://stackoverflow.com/a/53982372/916373)
     - name: install intel-mpi
       yum:
-        name: intel-mpi-2019.4-070
+        name: intel-mpi-2018.4-057
         state: present
-    - name: install intel-mkl (includes hpl benchmark)
+    - name: install intel-mkl
+      # (includes the hpl benchmark we want in /opt/intel/compilers_and_libraries_*/linux/mkl/benchmarks/mp_linpack)
       yum:
         name: intel-mkl-2019.4-070
         state: present
